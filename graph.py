@@ -148,13 +148,16 @@ class Graph:
         """
         l1 = node(n1)
 
+        # No duplicate edge
         if n1 not in self.node_list or n2 not in self.node_list:
             raise NodeNotFound
         if n1 in self.graph[n2]['neighbors'] or n2 in self.graph[n1]['neighbors']:
             raise DuplicateEdge
 
+        # Update edge number
         self.edge_num += 1
 
+        # Update weight
         if (weight != 1):
             self.weight += weight
 
@@ -171,6 +174,7 @@ class Graph:
                 if j == n2:
                     l1.in_degree_n +=1
 
+        # Assign in degree and out degree
         self.graph[n2]['in_degree'] = l1.in_degree_n
         l1.out_degree_n = len(self.graph[n1]['neighbors'])
         self.graph[n1]['out_degree'] = l1.out_degree_n 
@@ -188,7 +192,7 @@ class Graph:
         Post conditions: the edge with the given nodes and weight
         is removed from the graph
         """
-        
+        # Make sure edge exist before delete
         if self.has_edge(n1, n2) == False:
             raise EdgeNotFound
         if self.is_directed:
@@ -196,9 +200,12 @@ class Graph:
         else:
             self.graph[n2]['neighbors'].remove(n1)
             self.graph[n1]['neighbors'].remove(n2)
+
+        # Update weight
         if (weight != 1):
             self.weight - weight
 
+        # Update number of edges
         self.edge_num -= 1
 
         # Recalculate in degree and out degree
@@ -220,11 +227,11 @@ class Graph:
         Return value: a list of node objects, which is the 
         Breadth First Search starting at source
         """
-        visited = [False]*(int(max(self.node_list)) + 1)
-        list = []
-        queue = []
-        queue.append(source)
-        visited[int(source)] = True
+        visited = [False]*(int(max(self.node_list)) + 1) # Create list for visited node
+        list = [] # Create list to hold the node
+        queue = [] # Create queue getting the first node
+        queue.append(source) # Add root node first
+        visited[int(source)] = True # Mark root node as visited
         while queue:
             source = queue.pop(0)
             list.append(source)
@@ -242,8 +249,9 @@ class Graph:
         Return value: a list of node objects, which is the 
         Depth First Search starting at source
         """
-        visited = set()
-        list = []
+        visited = set() # Create set for visited node
+        list = [] # Create empty list to hold the node
+        # Create separate function for recursive sake
         list = self.depth_first_search(source, visited, list)
         return list
 
@@ -251,6 +259,7 @@ class Graph:
         visited.add(source)
         list.append(source)
         
+        # Recursively check if node has been visited
         for neighbor in self.graph[source]['neighbors']:
             if neighbor not in visited:
                 self.depth_first_search(neighbor, visited, list)
@@ -265,6 +274,7 @@ class Graph:
         Return value: a boolean - True if there is an edge in the 
             Graph from n1 to n2, False otherwise
         """
+        # Make sure node exists
         if n1 not in self.node_list or n2 not in self.node_list:
             raise NodeNotFound
         if self.is_directed():
@@ -288,10 +298,11 @@ class Graph:
             label n1, L[-1] has label n2, and for 1 <= i <= len(L) - 1,
             the Graph has an edge from L[i-1] to L[i]
         """
+        # Make sure node exists
         if n1 not in self.node_list or n2 not in self.node_list:
             raise NodeNotFound
-        queue = []
-        queue.append(n1)
+        queue = [] # Create empty queue to get first node
+        queue.append(n1) # Add root node
         while queue:
             path = queue.pop(0)
             node = path[-1]
@@ -311,7 +322,7 @@ class Graph:
         """
         if label not in self.node_list:
             raise NodeNotFound
-
+        # Return neighbors of that node
         return self.graph[label]['neighbors']
 
 # Exceptions
