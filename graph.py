@@ -46,6 +46,7 @@ class Graph:
         self.graph = {} # Complete graph contain all information of nodes
         self.node_list = [] # List that hold nodes only
         self.weight = 1 # Initialize graph's weight 
+        self.edge_num = 0 # Initialize number of edges
 
     def num_vertices(self):
         """
@@ -61,7 +62,7 @@ class Graph:
         Return value: integer corresponding to the total number
         of edges in the graph
         """
-        return self.weight - 1
+        return self.edge_num
     
     def is_directed(self):
         """
@@ -77,7 +78,7 @@ class Graph:
         Return value: boolean - True if any edge in the Graph
         has a weight other than 1, False otherwise
         """
-        if self.weight > 1:
+        if self.weight != 1:
             return True
         else:
             return False
@@ -91,11 +92,12 @@ class Graph:
         """      
         node_label = node(label)
 
+        # Don't add duplicate node
         if label not in self.node_list:
             self.node_list.append(label)
             self.graph[node_label.label] = {'out_degree' : node_label.out_degree(), 'in_degree' : node_label.in_degree(), 'neighbors' : node_label.neighbors}
         else:
-            raise MyException('DuplicateNode', 1)
+            raise DuplicateNode
     
     def remove_node(self, label):
         """
@@ -107,13 +109,17 @@ class Graph:
         graph
         """
         if label not in self.node_list:
-            raise MyException('Node not exist', 2)
+            raise NodeNotFound
         
+        # Delete node from node that have it has neighbor
         for i in self.node_list:
             for neighbor in self.graph[i]['neighbors']:
                 if neighbor == label:
                     self.graph[i]['neighbors'].remove(label)
+        # Delete node from graph
         del self.graph[label]
+        # Delte node from node list
+        self.node_list.remove(label)
 
         # Recalculate in degree and out degree
         for i in self.graph:
@@ -143,18 +149,21 @@ class Graph:
         l1 = node(n1)
 
         if n1 not in self.node_list or n2 not in self.node_list:
-            raise MyException('Node not exist', 2)
+            raise NodeNotFound
+        if n1 in self.graph[n2]['neighbors'] or n2 in self.graph[n1]['neighbors']:
+            raise DuplicateEdge
+
+        self.edge_num += 1
+
+        if (weight != 1):
+            self.weight += weight
+
         if self.is_directed():
-            # Prevent making graph from directed to non-directed
-            if n1 in self.graph[n2]['neighbors']:
-                raise MyException('DuplicateEdge', 5)
-            
+            # Prevent making graph from directed to non-directed  
             self.graph[n1]['neighbors'].append(n2)
-            self.weight += 1
-        else:
+        else: 
             self.graph[n1]['neighbors'].append(n2)
             self.graph[n2]['neighbors'].append(n1)
-            self.weight += 1
         
         # Count in degree and out degree by nodes' neighbors
         for i in self.graph:
@@ -179,14 +188,18 @@ class Graph:
         Post conditions: the edge with the given nodes and weight
         is removed from the graph
         """
+        
         if self.has_edge(n1, n2) == False:
-            raise MyException('EdgeNotFound', 2)
+            raise EdgeNotFound
         if self.is_directed:
             self.graph[n1]['neighbors'].remove(n2)
         else:
             self.graph[n2]['neighbors'].remove(n1)
             self.graph[n1]['neighbors'].remove(n2)
-        self.weight - 1
+        if (weight != 1):
+            self.weight - weight
+
+        self.edge_num -= 1
 
         # Recalculate in degree and out degree
         for i in self.graph:
@@ -219,6 +232,7 @@ class Graph:
                 if visited[int(i)] == False:
                     queue.append(i)
                     visited[int(i)] = True
+                    
         return list
     
     def DFS(self, source):
@@ -252,7 +266,7 @@ class Graph:
             Graph from n1 to n2, False otherwise
         """
         if n1 not in self.node_list or n2 not in self.node_list:
-            raise MyException('Node not exist', 4)
+            raise NodeNotFound
         if self.is_directed():
             if n2 in self.graph[n1]['neighbors']:
                 return True
@@ -275,7 +289,7 @@ class Graph:
             the Graph has an edge from L[i-1] to L[i]
         """
         if n1 not in self.node_list or n2 not in self.node_list:
-            raise MyException('Node not exist', 4)
+            raise NodeNotFound
         queue = []
         queue.append(n1)
         while queue:
@@ -296,20 +310,21 @@ class Graph:
         adjacent to the node with the given label
         """
         if label not in self.node_list:
-            raise MyException('Node not exist', 3)
+            raise NodeNotFound
 
         return self.graph[label]['neighbors']
-class MyException(Exception):
-    """
-    Custom Exception
-    """
-    def __init_(self, message, errors):
-        super().__init__(message)
-        self.errors = errors
-        print('Printing Errors:')
-        print(errors)
 
 # Exceptions
+class DuplicateNode(Exception):
+    pass
+class NodeNotFound(Exception):
+    pass
+class DuplicateEdge(Exception):
+    pass
+class EdgeNotFound(Exception):
+    pass
+
+
 """
 If a label is provided that is supposed to exist in the Graph
 and a node with that label does not exist, the method should raise 
